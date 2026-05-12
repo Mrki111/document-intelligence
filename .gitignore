@@ -1,0 +1,15 @@
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+.terraform/
+*.tfstate
+*.tfstate.*
+infra/build/*.zip
+!infra/build/.gitkeep
+
+resume.pdf
+

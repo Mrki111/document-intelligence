@@ -1,0 +1,1 @@
+"""Generate upload URL Lambda."""
