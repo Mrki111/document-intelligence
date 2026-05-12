@@ -25,6 +25,51 @@ class BedrockTest(unittest.TestCase):
 
         validate_model_json("resume", payload)
 
+    def test_parses_json_inside_markdown_fence(self) -> None:
+        payload = parse_model_json(
+            """
+            ```json
+            {
+              "summary": "Cloud engineer",
+              "candidateLevel": "Junior",
+              "skills": ["AWS"],
+              "awsServicesMentioned": ["S3"],
+              "strengths": [],
+              "weaknesses": [],
+              "missingKeywords": [],
+              "recommendedProjects": [],
+              "atsScore": 75
+            }
+            ```
+            """
+        )
+
+        self.assertEqual(payload["summary"], "Cloud engineer")
+
+    def test_parses_json_after_short_intro(self) -> None:
+        payload = parse_model_json(
+            """
+            Here is the structured analysis:
+            {
+              "summary": "Cloud engineer",
+              "candidateLevel": "Junior",
+              "skills": ["AWS"],
+              "awsServicesMentioned": ["S3"],
+              "strengths": [],
+              "weaknesses": [],
+              "missingKeywords": [],
+              "recommendedProjects": [],
+              "atsScore": 75
+            }
+            """
+        )
+
+        self.assertEqual(payload["atsScore"], 75)
+
+    def test_rejects_json_array(self) -> None:
+        with self.assertRaises(BedrockOutputError):
+            parse_model_json('[{"summary": "not an object"}]')
+
     def test_rejects_invalid_ats_score(self) -> None:
         with self.assertRaises(BedrockOutputError):
             validate_model_json(
