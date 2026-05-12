@@ -66,6 +66,26 @@ Useful Terraform variables:
 - `api_throttle_burst_limit`, `api_throttle_rate_limit`
 - `process_document_reserved_concurrency`, default `-1` to leave Lambda reserved concurrency unset. Only set this if your account concurrency quota is high enough to keep at least 10 unreserved executions.
 
+Copy `infra/terraform.tfvars.example` to `infra/terraform.tfvars` for local values.
+
+## V2: Bedrock Analysis
+
+V2 adds structured AI analysis after Textract extraction.
+
+1. In the AWS console, open Amazon Bedrock in the same region as Terraform, default `us-east-1`.
+2. Enable access to the model you want to use.
+3. Set `bedrock_model_id` in `infra/terraform.tfvars`.
+4. Run `terraform -chdir=infra apply`.
+5. Upload a new single-page PDF and poll `GET /documents/{documentId}`.
+
+Example:
+
+```hcl
+bedrock_model_id = "anthropic.claude-3-5-haiku-20241022-v1:0"
+```
+
+The completed document response should include both `extractedTextPreview` and `analysis`.
+
 ## API
 
 Generate an upload URL:

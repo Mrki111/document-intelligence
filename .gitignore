@@ -8,8 +8,8 @@ __pycache__/
 .terraform/
 *.tfstate
 *.tfstate.*
+*.tfvars
 infra/build/*.zip
 !infra/build/.gitkeep
 
 resume.pdf
-

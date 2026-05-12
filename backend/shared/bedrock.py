@@ -45,13 +45,30 @@ def invoke_bedrock_json(
 
 
 def parse_model_json(text: str) -> dict[str, Any]:
-    try:
-        parsed = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise BedrockOutputError("Bedrock response was not valid JSON.") from exc
+    parsed = _decode_json_object(text)
     if not isinstance(parsed, dict):
         raise BedrockOutputError("Bedrock response JSON must be an object.")
     return parsed
+
+
+def _decode_json_object(text: str) -> Any:
+    stripped = text.strip()
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+
+    decoder = json.JSONDecoder()
+    for index, character in enumerate(stripped):
+        if character != "{":
+            continue
+        try:
+            parsed, _ = decoder.raw_decode(stripped[index:])
+        except json.JSONDecodeError:
+            continue
+        return parsed
+
+    raise BedrockOutputError("Bedrock response was not valid JSON.")
 
 
 def validate_model_json(document_type: str, payload: Mapping[str, Any]) -> None:

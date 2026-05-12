@@ -1,0 +1,13 @@
+aws_region  = "us-east-1"
+environment = "dev"
+
+# Leave empty for V1 Textract-only processing.
+# For V2, enable model access in Amazon Bedrock first, then set a model ID
+# available in your AWS region.
+bedrock_model_id = ""
+
+# Example V2 inference profile ID, if enabled in us-east-1:
+# bedrock_model_id = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+# Keep this unset unless your Lambda account concurrency quota is high enough.
+process_document_reserved_concurrency = -1
