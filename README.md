@@ -1,6 +1,6 @@
 # Serverless AI Document Intelligence Pipeline
 
-Serverless AWS document processing pipeline for small PDF documents. The MVP lets a client request a pre-signed S3 upload URL, upload a validated single-page PDF, trigger Lambda processing from an S3 event, extract text with Amazon Textract, and read the document status/result through API Gateway.
+Serverless AWS document processing pipeline for small PDF documents. The MVP lets a client request a pre-signed S3 upload URL, upload a validated PDF, trigger Lambda processing from an S3 event, extract multi-page text with asynchronous Amazon Textract, and read the document status/result through API Gateway.
 
 Amazon Bedrock analysis is wired as an optional next step. Leave `bedrock_model_id` empty for the Version 1 Textract-only flow, or set it in Terraform when Bedrock model access is enabled.
 
@@ -16,7 +16,9 @@ Client
   -> S3 pre-signed PUT URL
   -> S3 ObjectCreated event
   -> Lambda process_document
-  -> Amazon Textract
+  -> Amazon Textract async job
+  -> SNS completion notification
+  -> Lambda complete_document_processing
   -> optional Amazon Bedrock
   -> DynamoDB status/result
   -> API Gateway GET /documents/{documentId}
@@ -25,18 +27,20 @@ Client
 ## Features
 
 - Pre-signed S3 upload URLs gated by validated upload metadata
-- S3-event-driven Textract extraction for single-page PDFs
+- S3-event-driven async Textract extraction for multi-page PDFs
 - Optional Amazon Bedrock analysis with per-document-type JSON schemas
 - DynamoDB-backed status tracking with conditional updates
 - Retry-safe duplicate-event handling, plus stale-PROCESSING recovery
+- SNS-driven completion handler with paginated Textract result collection
+- SQS dead-letter queue and CloudWatch alarm for unrecoverable completion failures
 - Least-privilege IAM roles per Lambda
 - CloudWatch log groups with retention, API Gateway throttling, and reserved concurrency
 
 ## MVP Constraints
 
 - PDFs only.
-- Single-page PDFs for the synchronous Textract MVP.
 - Maximum upload size defaults to 10 MB.
+- Maximum page count defaults to 25 pages.
 - `documentType` must be `resume`, `invoice`, or `general`.
 - Invalid or oversized uploads are rejected before URL generation and checked again after upload.
 
@@ -63,10 +67,13 @@ Useful Terraform variables:
 - `environment`
 - `max_content_length`
 - `record_ttl_days`
+- `max_textract_pages`
 - `bedrock_model_id`
 - `stale_processing_seconds`
 - `api_throttle_burst_limit`, `api_throttle_rate_limit`
 - `process_document_reserved_concurrency`, default `-1` to leave Lambda reserved concurrency unset. Only set this if your account concurrency quota is high enough to keep at least 10 unreserved executions.
+- `complete_document_processing_reserved_concurrency`, same convention for the Textract completion Lambda.
+- `dlq_alarm_actions`, optional list of SNS topic ARNs to notify when the completion DLQ has messages.
 
 Copy `infra/terraform.tfvars.example` to `infra/terraform.tfvars` for local values.
 
@@ -78,7 +85,7 @@ V2 adds structured AI analysis after Textract extraction.
 2. Enable access to the model you want to use.
 3. Set `bedrock_model_id` in `infra/terraform.tfvars`.
 4. Run `terraform -chdir=infra apply`.
-5. Upload a new single-page PDF and poll `GET /documents/{documentId}`.
+5. Upload a new PDF and poll `GET /documents/{documentId}`.
 
 Example:
 
@@ -86,7 +93,7 @@ Example:
 bedrock_model_id = "anthropic.claude-3-5-haiku-20241022-v1:0"
 ```
 
-The completed document response should include both `extractedTextPreview` and `analysis`.
+The completed document response should include `extractedTextPreview`, `pageCount`, and `analysis`.
 
 ## API
 
@@ -122,6 +129,7 @@ curl "$API_URL/documents/$DOCUMENT_ID"
 - Pre-signed PUT URLs replace any public-write surface on the S3 bucket.
 - S3 bucket has public access blocked and AES-256 server-side encryption enabled.
 - Lambdas run with per-function IAM roles scoped to specific resources and actions (S3 prefix, DynamoDB table, Textract, Bedrock).
+- Textract publishes completion notifications to a private SNS topic through a scoped service role.
 - Upload requests are validated twice: declared metadata before the URL is signed, and S3 `HeadObject` size + content type before Textract is called.
 - DynamoDB writes use conditional expressions so duplicate S3 events cannot overwrite a `COMPLETED` record.
 - API responses use safe error messages; stack traces stay in CloudWatch.
@@ -137,6 +145,7 @@ Cost controls already in the stack:
 - S3 lifecycle expiration on the upload prefix
 - API Gateway default-route throttling
 - Optional reserved concurrency on `process_document`
+- Configurable page-count cap after Textract completes
 - Bedrock text-length cap before each `InvokeModel`
 - Tear down with `terraform destroy` when not in use
 
@@ -144,13 +153,14 @@ Cost controls already in the stack:
 
 - Treat the pre-signed PUT URL as a delivery mechanism, not a validation boundary: revalidate the actual S3 object before Textract.
 - DynamoDB conditional updates are the simplest way to make S3 event handlers idempotent without an external lock.
+- Async Textract keeps Lambda duration predictable for multi-page PDFs; SNS is the handoff between OCR completion and result collection.
 - Plan for stuck `PROCESSING` records up front; a stale-timestamp guard is cheap and prevents permanently wedged documents after a Lambda crash.
 - Lambda IAM should be split per function; one shared role hides the actual blast radius of each handler.
+- An SNS-to-Lambda subscription needs two DLQ paths: a Lambda async DLQ for runtime failures *and* an SNS subscription redrive for delivery failures. They cover different failure modes.
 
 ## Future Improvements
 
-- Async Textract for multi-page or large PDFs
-- SQS or EventBridge between S3 and Lambda for retries and DLQ
+- SQS or EventBridge between S3 and `process_document` for retries and DLQ on the upstream side
 - Step Functions to orchestrate extraction → analysis → indexing
 - Cognito-backed authentication and per-user document history
 - Pre-signed POST policies with `content-length-range` for server-side size enforcement

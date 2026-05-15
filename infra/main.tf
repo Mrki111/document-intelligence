@@ -37,24 +37,40 @@ locals {
       timeout     = 10
       memory_size = 128
       role_arn    = aws_iam_role.generate_upload_url.arn
+      environment = {}
     }
     process_document = {
       handler     = "lambdas.process_document.app.lambda_handler"
       timeout     = 60
       memory_size = 512
       role_arn    = aws_iam_role.process_document.arn
+      environment = {
+        TEXTRACT_SNS_TOPIC_ARN = aws_sns_topic.textract_completion.arn
+        TEXTRACT_ROLE_ARN      = aws_iam_role.textract_publish.arn
+      }
+    }
+    complete_document_processing = {
+      handler     = "lambdas.complete_document_processing.app.lambda_handler"
+      timeout     = 120
+      memory_size = 512
+      role_arn    = aws_iam_role.complete_document_processing.arn
+      environment = {
+        MAX_TEXTRACT_PAGES = tostring(var.max_textract_pages)
+      }
     }
     get_document = {
       handler     = "lambdas.get_document.app.lambda_handler"
       timeout     = 10
       memory_size = 128
       role_arn    = aws_iam_role.get_document.arn
+      environment = {}
     }
     health = {
       handler     = "lambdas.health.app.lambda_handler"
       timeout     = 5
       memory_size = 128
       role_arn    = aws_iam_role.health.arn
+      environment = {}
     }
   }
 }

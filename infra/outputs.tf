@@ -12,3 +12,13 @@ output "document_table_name" {
   description = "DynamoDB table storing document status and results."
   value       = aws_dynamodb_table.documents.name
 }
+
+output "textract_completion_topic_arn" {
+  description = "SNS topic used by Textract async completion notifications."
+  value       = aws_sns_topic.textract_completion.arn
+}
+
+output "complete_document_processing_dlq_url" {
+  description = "SQS DLQ URL for the complete_document_processing Lambda."
+  value       = aws_sqs_queue.complete_document_processing_dlq.url
+}

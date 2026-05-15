@@ -29,7 +29,7 @@ variable "log_retention_days" {
 }
 
 variable "max_content_length" {
-  description = "Maximum accepted upload size in bytes for the synchronous Textract MVP."
+  description = "Maximum accepted upload size in bytes."
   type        = number
   default     = 10485760
 }
@@ -82,8 +82,31 @@ variable "process_document_reserved_concurrency" {
   default     = -1
 }
 
+variable "complete_document_processing_reserved_concurrency" {
+  description = "Reserved concurrency for the Textract completion Lambda. Use -1 to leave it unset."
+  type        = number
+  default     = -1
+}
+
 variable "stale_processing_seconds" {
   description = "Age after which a PROCESSING record may be retried by a duplicate S3 event."
   type        = number
   default     = 600
+}
+
+variable "max_textract_pages" {
+  description = "Maximum number of PDF pages accepted after async Textract completes."
+  type        = number
+  default     = 25
+
+  validation {
+    condition     = var.max_textract_pages > 0
+    error_message = "max_textract_pages must be greater than 0."
+  }
+}
+
+variable "dlq_alarm_actions" {
+  description = "Optional SNS topic ARNs to notify when the complete_document_processing DLQ has visible messages."
+  type        = list(string)
+  default     = []
 }
