@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "document-intelligence"
-version = "0.1.0"
+version = "0.2.1"
 description = "Serverless AWS document processing pipeline using Lambda, S3, DynamoDB, Textract, and optional Bedrock analysis."
 readme = "README.md"
 requires-python = ">=3.12"
