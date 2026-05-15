@@ -42,7 +42,7 @@ def _serialize_document(item: Mapping[str, Any]) -> dict[str, Any]:
         "status": status,
     }
     if status == STATUS_COMPLETED:
-        _copy_if_present(item, body, ("documentType", "filename", "extractedTextPreview"))
+        _copy_if_present(item, body, ("documentType", "filename", "extractedTextPreview", "pageCount"))
         if "analysis" in item:
             body["analysis"] = item["analysis"]
     elif status == STATUS_FAILED:

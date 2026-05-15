@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import json
 import unittest
 from datetime import UTC, datetime
-from io import BytesIO
 
 from botocore.exceptions import ClientError
 
@@ -27,56 +25,14 @@ class FakeS3Client:
 
 class FakeTextractClient:
     def __init__(self, *, error: ClientError | None = None) -> None:
-        self.calls = 0
+        self.start_calls = []
         self.error = error
 
-    def detect_document_text(self, *, Document):
-        self.calls += 1
+    def start_document_text_detection(self, **kwargs):
+        self.start_calls.append(kwargs)
         if self.error is not None:
             raise self.error
-        return {
-            "Blocks": [
-                {"BlockType": "PAGE"},
-                {"BlockType": "LINE", "Text": "John Smith"},
-                {"BlockType": "WORD", "Text": "Ignored"},
-                {"BlockType": "LINE", "Text": "AWS Engineer"},
-            ]
-        }
-
-
-class FakeBedrockClient:
-    def __init__(self) -> None:
-        self.calls = []
-
-    def invoke_model(self, *, modelId, contentType, accept, body):
-        self.calls.append(
-            {
-                "modelId": modelId,
-                "contentType": contentType,
-                "accept": accept,
-                "body": body,
-            }
-        )
-        analysis = {
-            "summary": "AWS engineer with RAG experience.",
-            "candidateLevel": "Mid-level",
-            "skills": ["AWS", "Python", "RAG"],
-            "awsServicesMentioned": ["S3", "Lambda"],
-            "strengths": ["Production AI experience"],
-            "weaknesses": [],
-            "missingKeywords": [],
-            "recommendedProjects": [],
-            "atsScore": 82,
-        }
-        payload = {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps(analysis),
-                }
-            ]
-        }
-        return {"body": BytesIO(json.dumps(payload).encode("utf-8"))}
+        return {"JobId": "textract-job-123"}
 
 
 class FakeTable:
@@ -123,6 +79,20 @@ class FakeTable:
                 self.item["analysis"] = values[":analysis"]
             return {}
 
+        if ":job_id" in values:
+            if self.complete_update_conflict:
+                self.item["status"] = "COMPLETED"
+                raise ClientError(
+                    {"Error": {"Code": "ConditionalCheckFailedException", "Message": "blocked"}},
+                    "UpdateItem",
+                )
+            self.item["updatedAt"] = values[":updated_at"]
+            self.item["textractJobId"] = values[":job_id"]
+            self.item["textractJobStartedAt"] = values[":started_at"]
+            if ":s3_etag" in values:
+                self.item["s3ETag"] = values[":s3_etag"]
+            return {}
+
         if ":processing" in values and ":uploaded" in values:
             current_status = self.item.get("status")
             updated_at = self.item.get("updatedAt")
@@ -157,22 +127,9 @@ def config() -> AppConfig:
         bedrock_model_id=None,
         bedrock_text_limit=12000,
         stale_processing_seconds=600,
-    )
-
-
-def bedrock_config() -> AppConfig:
-    return AppConfig(
-        upload_bucket="uploads-bucket",
-        table_name="documents",
-        allowed_document_types=("resume", "invoice", "general"),
-        max_content_length=10485760,
-        upload_prefix="uploads/",
-        upload_url_expiration_seconds=900,
-        record_ttl_days=7,
-        extracted_text_preview_length=1000,
-        bedrock_model_id="anthropic.claude-3-5-haiku-20241022-v1:0",
-        bedrock_text_limit=12000,
-        stale_processing_seconds=600,
+        textract_sns_topic_arn="arn:aws:sns:us-east-1:123456789012:textract-completion",
+        textract_role_arn="arn:aws:iam::123456789012:role/textract-publish",
+        max_textract_pages=25,
     )
 
 
@@ -190,7 +147,7 @@ def s3_event() -> dict:
 
 
 class ProcessDocumentTest(unittest.TestCase):
-    def test_processes_uploaded_document(self) -> None:
+    def test_starts_async_textract_job_for_uploaded_document(self) -> None:
         table = FakeTable(
             {
                 "documentId": "doc_test",
@@ -212,40 +169,19 @@ class ProcessDocumentTest(unittest.TestCase):
         )
 
         self.assertEqual(result["processed"], 1)
-        self.assertEqual(result["results"][0]["status"], "COMPLETED")
-        self.assertEqual(textract.calls, 1)
-        self.assertEqual(table.item["status"], "COMPLETED")
-        self.assertEqual(table.item["extractedTextPreview"], "John Smith\nAWS Engineer")
-        self.assertEqual(table.item["extractedTextLength"], 23)
+        self.assertEqual(result["results"][0]["status"], "PROCESSING")
+        self.assertEqual(result["results"][0]["textractJobId"], "textract-job-123")
+        self.assertEqual(len(textract.start_calls), 1)
+        self.assertEqual(table.item["status"], "PROCESSING")
+        self.assertEqual(table.item["textractJobId"], "textract-job-123")
         self.assertEqual(table.item["s3ETag"], "etag123")
-
-    def test_stores_bedrock_analysis_when_model_is_configured(self) -> None:
-        table = FakeTable(
-            {
-                "documentId": "doc_test",
-                "documentType": "resume",
-                "contentLength": 1024,
-                "s3Key": "uploads/doc_test/resume.pdf",
-                "status": "UPLOADED",
-            }
+        request = textract.start_calls[0]
+        self.assertEqual(request["JobTag"], "doc_test")
+        self.assertEqual(request["DocumentLocation"]["S3Object"]["Name"], "uploads/doc_test/resume.pdf")
+        self.assertEqual(
+            request["NotificationChannel"]["SNSTopicArn"],
+            "arn:aws:sns:us-east-1:123456789012:textract-completion",
         )
-        bedrock = FakeBedrockClient()
-
-        result = handle_s3_event(
-            s3_event(),
-            config=bedrock_config(),
-            s3_client=FakeS3Client(),
-            textract_client=FakeTextractClient(),
-            table=table,
-            bedrock_client=bedrock,
-            now_factory=lambda: datetime(2026, 5, 12, 12, 0, tzinfo=UTC),
-        )
-
-        self.assertEqual(result["results"][0]["status"], "COMPLETED")
-        self.assertEqual(len(bedrock.calls), 1)
-        self.assertEqual(bedrock.calls[0]["modelId"], "anthropic.claude-3-5-haiku-20241022-v1:0")
-        self.assertEqual(table.item["analysis"]["summary"], "AWS engineer with RAG experience.")
-        self.assertEqual(table.item["analysis"]["atsScore"], 82)
 
     def test_ignores_duplicate_completed_event(self) -> None:
         table = FakeTable(
@@ -270,7 +206,7 @@ class ProcessDocumentTest(unittest.TestCase):
 
         self.assertEqual(result["results"][0]["status"], "IGNORED_COMPLETED")
         self.assertEqual(s3.head_calls, 0)
-        self.assertEqual(textract.calls, 0)
+        self.assertEqual(len(textract.start_calls), 0)
 
     def test_ignores_recent_processing_event(self) -> None:
         table = FakeTable(
@@ -297,7 +233,7 @@ class ProcessDocumentTest(unittest.TestCase):
 
         self.assertEqual(result["results"][0]["status"], "IGNORED_PROCESSING")
         self.assertEqual(s3.head_calls, 0)
-        self.assertEqual(textract.calls, 0)
+        self.assertEqual(len(textract.start_calls), 0)
 
     def test_recovers_stale_processing_record(self) -> None:
         table = FakeTable(
@@ -320,8 +256,9 @@ class ProcessDocumentTest(unittest.TestCase):
             now_factory=lambda: datetime(2026, 5, 12, 12, 0, tzinfo=UTC),
         )
 
-        self.assertEqual(result["results"][0]["status"], "COMPLETED")
-        self.assertEqual(table.item["status"], "COMPLETED")
+        self.assertEqual(result["results"][0]["status"], "PROCESSING")
+        self.assertEqual(table.item["status"], "PROCESSING")
+        self.assertEqual(table.item["textractJobId"], "textract-job-123")
 
     def test_marks_invalid_upload_failed(self) -> None:
         table = FakeTable(
@@ -347,7 +284,7 @@ class ProcessDocumentTest(unittest.TestCase):
         self.assertEqual(table.item["status"], "FAILED")
         self.assertEqual(table.item["failureReason"], "INVALID_UPLOAD_CONTENT_TYPE")
 
-    def test_completion_conflict_does_not_mark_completed_document_failed(self) -> None:
+    def test_job_update_conflict_does_not_mark_completed_document_failed(self) -> None:
         table = FakeTable(
             {
                 "documentId": "doc_test",
@@ -413,7 +350,7 @@ class ProcessDocumentTest(unittest.TestCase):
                 "Error": {"Code": "ThrottlingException", "Message": "Rate exceeded"},
                 "ResponseMetadata": {"HTTPStatusCode": 400},
             },
-            "DetectDocumentText",
+            "StartDocumentTextDetection",
         )
 
         with self.assertRaises(ClientError):

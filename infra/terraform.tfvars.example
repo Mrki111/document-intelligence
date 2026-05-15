@@ -10,4 +10,11 @@ bedrock_model_id = ""
 # bedrock_model_id = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 # Keep this unset unless your Lambda account concurrency quota is high enough.
-process_document_reserved_concurrency = -1
+process_document_reserved_concurrency             = -1
+complete_document_processing_reserved_concurrency = -1
+
+# Documents with more pages are marked FAILED after Textract completes.
+max_textract_pages = 25
+
+# Optional SNS topics to notify when the completion DLQ has visible messages.
+# dlq_alarm_actions = ["arn:aws:sns:us-east-1:123456789012:ops-alerts"]

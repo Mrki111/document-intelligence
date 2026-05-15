@@ -7,10 +7,8 @@ from urllib.parse import unquote_plus
 
 from botocore.exceptions import ClientError
 
-from shared.bedrock import BedrockOutputError, invoke_bedrock_json
 from shared.config import AppConfig, load_config
 from shared.constants import STATUS_COMPLETED, STATUS_FAILED, STATUS_PROCESSING, STATUS_UPLOADED
-from shared.textract import extract_text
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -35,29 +33,28 @@ def handle_s3_event(
     s3_client: Any | None = None,
     textract_client: Any | None = None,
     table: Any | None = None,
-    bedrock_client: Any | None = None,
     now_factory: Callable[[], datetime] | None = None,
 ) -> dict[str, Any]:
     if not config.table_name:
         raise RuntimeError("TABLE_NAME must be configured.")
+    if not config.textract_sns_topic_arn or not config.textract_role_arn:
+        raise RuntimeError("TEXTRACT_SNS_TOPIC_ARN and TEXTRACT_ROLE_ARN must be configured.")
 
     s3_client = s3_client or _s3_client()
     textract_client = textract_client or _textract_client()
     table = table or _document_table(config.table_name)
-    if config.bedrock_model_id and bedrock_client is None:
-        bedrock_client = _bedrock_client()
+    clock = now_factory or _utc_now
 
     results = []
     for record in event.get("Records", []):
-        now = (now_factory or _utc_now)()
         result = process_record(
             record,
             config=config,
             s3_client=s3_client,
             textract_client=textract_client,
             table=table,
-            bedrock_client=bedrock_client,
-            now=now,
+            now=clock(),
+            clock=clock,
         )
         results.append(result)
     return {"processed": len(results), "results": results}
@@ -70,8 +67,8 @@ def process_record(
     s3_client: Any,
     textract_client: Any,
     table: Any,
-    bedrock_client: Any | None,
     now: datetime,
+    clock: Callable[[], datetime],
 ) -> dict[str, Any]:
     bucket, key = _bucket_and_key(record)
     document_id = _document_id_from_key(key, config.upload_prefix)
@@ -104,44 +101,30 @@ def process_record(
         if not _mark_processing(table, document_id, now, stale_threshold):
             return {"documentId": document_id, "status": "IGNORED_CONCURRENT_UPDATE"}
 
-        textract_response = textract_client.detect_document_text(
-            Document={"S3Object": {"Bucket": bucket, "Name": key}}
+        job_id = _start_textract_job(
+            textract_client,
+            bucket=bucket,
+            key=key,
+            document_id=document_id,
+            config=config,
+            now=now,
         )
-        text = extract_text(textract_response)
-        preview = text[: config.extracted_text_preview_length]
-
-        analysis = None
-        if config.bedrock_model_id:
-            # bedrock_text_limit is applied inside build_prompt as a safety net;
-            # the full extracted text is passed in so the limit is enforced in one place.
-            analysis = invoke_bedrock_json(
-                bedrock_client,
-                model_id=config.bedrock_model_id,
-                document_type=item["documentType"],
-                extracted_text=text,
-                text_limit=config.bedrock_text_limit,
-            )
-
-        completed = _mark_completed(
+        started_at = clock()
+        job_recorded = _mark_textract_job_started(
             table,
             document_id=document_id,
-            now=now,
-            extracted_text_preview=preview,
-            extracted_text_length=len(text),
-            analysis=analysis,
+            now=started_at,
+            started_at=started_at,
+            textract_job_id=job_id,
             s3_etag=record.get("s3", {}).get("object", {}).get("eTag"),
         )
-        if not completed:
+        if not job_recorded:
             return {"documentId": document_id, "status": "IGNORED_CONCURRENT_UPDATE"}
-        return {"documentId": document_id, "status": STATUS_COMPLETED}
+        return {"documentId": document_id, "status": STATUS_PROCESSING, "textractJobId": job_id}
     except ProcessingError as exc:
         if not _mark_failed(table, document_id, now, exc.reason, exc.safe_message):
             return {"documentId": document_id, "status": "IGNORED_COMPLETED"}
         return {"documentId": document_id, "status": STATUS_FAILED, "failureReason": exc.reason}
-    except BedrockOutputError as exc:
-        if not _mark_failed(table, document_id, now, "BEDROCK_INVALID_OUTPUT", str(exc)):
-            return {"documentId": document_id, "status": "IGNORED_COMPLETED"}
-        return {"documentId": document_id, "status": STATUS_FAILED, "failureReason": "BEDROCK_INVALID_OUTPUT"}
     except ClientError as exc:
         if _is_retryable_client_error(exc):
             logger.warning("Retryable AWS error for documentId=%s: %s", document_id, exc)
@@ -215,6 +198,27 @@ def _validate_uploaded_object(
         raise ProcessingError("INVALID_UPLOAD_CONTENT_TYPE", "Uploaded object must be application/pdf.")
 
 
+def _start_textract_job(
+    textract_client: Any,
+    *,
+    bucket: str,
+    key: str,
+    document_id: str,
+    config: AppConfig,
+    now: datetime,
+) -> str:
+    response = textract_client.start_document_text_detection(
+        DocumentLocation={"S3Object": {"Bucket": bucket, "Name": key}},
+        ClientRequestToken=f"{document_id}-{int(now.timestamp())}",
+        JobTag=document_id,
+        NotificationChannel={
+            "SNSTopicArn": config.textract_sns_topic_arn,
+            "RoleArn": config.textract_role_arn,
+        },
+    )
+    return response["JobId"]
+
+
 def _mark_processing(table: Any, document_id: str, now: datetime, stale_threshold: str) -> bool:
     try:
         table.update_item(
@@ -241,29 +245,24 @@ def _mark_processing(table: Any, document_id: str, now: datetime, stale_threshol
         raise
 
 
-def _mark_completed(
+def _mark_textract_job_started(
     table: Any,
     *,
     document_id: str,
     now: datetime,
-    extracted_text_preview: str,
-    extracted_text_length: int,
-    analysis: dict[str, Any] | None,
+    started_at: datetime,
+    textract_job_id: str,
     s3_etag: str | None,
 ) -> bool:
     expression_values: dict[str, Any] = {
-        ":completed": STATUS_COMPLETED,
         ":updated_at": _isoformat(now),
-        ":preview": extracted_text_preview,
-        ":length": extracted_text_length,
+        ":started_at": _isoformat(started_at),
+        ":job_id": textract_job_id,
+        ":processing": STATUS_PROCESSING,
     }
     update_expression = (
-        "SET #status = :completed, updatedAt = :updated_at, "
-        "extractedTextPreview = :preview, extractedTextLength = :length"
+        "SET updatedAt = :updated_at, textractJobId = :job_id, textractJobStartedAt = :started_at"
     )
-    if analysis is not None:
-        update_expression += ", analysis = :analysis"
-        expression_values[":analysis"] = analysis
     if s3_etag:
         update_expression += ", s3ETag = :s3_etag"
         expression_values[":s3_etag"] = s3_etag
@@ -274,15 +273,12 @@ def _mark_completed(
             UpdateExpression=update_expression,
             ConditionExpression="#status = :processing",
             ExpressionAttributeNames={"#status": "status"},
-            ExpressionAttributeValues={
-                **expression_values,
-                ":processing": STATUS_PROCESSING,
-            },
+            ExpressionAttributeValues=expression_values,
         )
         return True
     except ClientError as exc:
         if _is_conditional_check_failed(exc):
-            logger.info("Completion skipped because documentId=%s is no longer PROCESSING", document_id)
+            logger.info("Textract job update skipped because documentId=%s is no longer PROCESSING", document_id)
             return False
         raise
 
@@ -356,12 +352,6 @@ def _textract_client() -> Any:
     import boto3
 
     return boto3.client("textract")
-
-
-def _bedrock_client() -> Any:
-    import boto3
-
-    return boto3.client("bedrock-runtime")
 
 
 def _document_table(table_name: str) -> Any:

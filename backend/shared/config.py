@@ -9,6 +9,7 @@ from shared.constants import (
     DEFAULT_BEDROCK_TEXT_LIMIT,
     DEFAULT_EXTRACTED_TEXT_PREVIEW_LENGTH,
     DEFAULT_MAX_CONTENT_LENGTH,
+    DEFAULT_MAX_TEXTRACT_PAGES,
     DEFAULT_RECORD_TTL_DAYS,
     DEFAULT_STALE_PROCESSING_SECONDS,
     DEFAULT_UPLOAD_PREFIX,
@@ -29,6 +30,13 @@ class AppConfig:
     bedrock_model_id: str | None
     bedrock_text_limit: int
     stale_processing_seconds: int
+    textract_sns_topic_arn: str | None = None
+    textract_role_arn: str | None = None
+    max_textract_pages: int = DEFAULT_MAX_TEXTRACT_PAGES
+
+    def __post_init__(self) -> None:
+        if self.max_textract_pages <= 0:
+            raise ValueError("max_textract_pages must be greater than 0.")
 
 
 def _int_from_env(env: Mapping[str, str], name: str, default: int) -> int:
@@ -70,4 +78,7 @@ def load_config(env: Mapping[str, str] | None = None) -> AppConfig:
             "STALE_PROCESSING_SECONDS",
             DEFAULT_STALE_PROCESSING_SECONDS,
         ),
+        textract_sns_topic_arn=source.get("TEXTRACT_SNS_TOPIC_ARN") or None,
+        textract_role_arn=source.get("TEXTRACT_ROLE_ARN") or None,
+        max_textract_pages=_int_from_env(source, "MAX_TEXTRACT_PAGES", DEFAULT_MAX_TEXTRACT_PAGES),
     )
