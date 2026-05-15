@@ -54,6 +54,8 @@ python -m unittest discover -s tests
 
 ## Deploy
 
+Requires Terraform ≥ 1.6, an AWS account with credentials configured (`aws configure` or environment variables), Python 3.12, and `jq` for the demo script.
+
 ```bash
 cd infra
 terraform init
@@ -97,6 +99,12 @@ The completed document response should include `extractedTextPreview`, `pageCoun
 
 ## API
 
+Health check:
+
+```bash
+curl "$API_URL/health"
+```
+
 Generate an upload URL:
 
 ```bash
@@ -118,11 +126,61 @@ curl -X PUT "$UPLOAD_URL" \
   --upload-file resume.pdf
 ```
 
-Get the result:
+Poll for the result:
 
 ```bash
 curl "$API_URL/documents/$DOCUMENT_ID"
 ```
+
+The response shape evolves with the document status:
+
+```jsonc
+// PROCESSING — Textract job in flight
+{ "documentId": "doc_…", "status": "PROCESSING" }
+
+// COMPLETED — extracted text + optional Bedrock analysis
+{
+  "documentId": "doc_…",
+  "status": "COMPLETED",
+  "documentType": "general",
+  "filename": "Q4_EC.pdf",
+  "extractedTextPreview": "…first 1000 chars of OCR output…",
+  "pageCount": 15,
+  "analysis": { "summary": "…", "keyPoints": [], "risks": [], "…": "…" }
+}
+
+// FAILED — validation, Textract, or Bedrock error
+{
+  "documentId": "doc_…",
+  "status": "FAILED",
+  "failureReason": "INVALID_UPLOAD_SIZE",
+  "errorMessage": "Uploaded object size does not match the request."
+}
+```
+
+## Document lifecycle
+
+```text
+UPLOADED → PROCESSING → COMPLETED
+                    ↘ FAILED
+```
+
+DynamoDB writes are guarded with conditional expressions: a duplicate S3 event will not overwrite a `COMPLETED` record, and a stale SNS notification (mismatched `textractJobId`) is ignored.
+
+### DynamoDB record
+
+| Attribute | Type | Present when |
+|---|---|---|
+| `documentId` | S | always (partition key) |
+| `documentType`, `filename`, `contentType`, `contentLength` | S/S/S/N | always |
+| `s3Key` | S | always |
+| `status` | S | always (`UPLOADED` / `PROCESSING` / `COMPLETED` / `FAILED`) |
+| `createdAt`, `updatedAt` | S | always (ISO-8601 UTC) |
+| `expiresAt` | N | always (DynamoDB TTL epoch seconds) |
+| `textractJobId`, `textractJobStartedAt`, `s3ETag` | S/S/S | once Textract started |
+| `extractedTextPreview`, `extractedTextLength`, `pageCount` | S/N/N | `COMPLETED` |
+| `analysis` | M | `COMPLETED`, if `bedrock_model_id` is set |
+| `failureReason`, `errorMessage` | S/S | `FAILED` |
 
 ## Demo
 
@@ -150,6 +208,8 @@ The script:
 - S3 bucket has public access blocked and AES-256 server-side encryption enabled.
 - Lambdas run with per-function IAM roles scoped to specific resources and actions (S3 prefix, DynamoDB table, Textract, Bedrock).
 - Textract publishes completion notifications to a private SNS topic through a scoped service role.
+- The `process_document` Lambda's `iam:PassRole` is conditioned on `iam:PassedToService = textract.amazonaws.com`, so the Textract publish role can only be handed to Textract.
+- The DLQ's SQS queue policy only allows the SNS service to publish, scoped to the Textract completion topic ARN.
 - Upload requests are validated twice: declared metadata before the URL is signed, and S3 `HeadObject` size + content type before Textract is called.
 - DynamoDB writes use conditional expressions so duplicate S3 events cannot overwrite a `COMPLETED` record.
 - API responses use safe error messages; stack traces stay in CloudWatch.
@@ -164,7 +224,7 @@ Cost controls already in the stack:
 - DynamoDB on-demand billing and TTL cleanup for demo records
 - S3 lifecycle expiration on the upload prefix
 - API Gateway default-route throttling
-- Optional reserved concurrency on `process_document`
+- Optional reserved concurrency on `process_document` and `complete_document_processing`
 - Configurable page-count cap after Textract completes
 - Bedrock text-length cap before each `InvokeModel`
 - Tear down with `terraform destroy` when not in use
