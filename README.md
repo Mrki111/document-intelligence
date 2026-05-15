@@ -57,10 +57,9 @@ python -m unittest discover -s tests
 Requires Terraform ≥ 1.6, an AWS account with credentials configured (`aws configure` or environment variables), Python 3.12, and `jq` for the demo script.
 
 ```bash
-cd infra
-terraform init
-terraform plan
-terraform apply
+terraform -chdir=infra init
+terraform -chdir=infra plan
+terraform -chdir=infra apply
 ```
 
 Useful Terraform variables:
