@@ -1,0 +1,5 @@
+api_endpoint = "https://<api-id>.execute-api.us-east-1.amazonaws.com/"
+complete_document_processing_dlq_url = "https://sqs.us-east-1.amazonaws.com/<aws-account-id>/document-intelligence-dev-complete-document-dlq"
+document_table_name = "document-intelligence-dev-documents"
+textract_completion_topic_arn = "arn:aws:sns:us-east-1:<aws-account-id>:AmazonTextract-document-intelligence-dev-completion"
+upload_bucket_name = "<bucket-name>"

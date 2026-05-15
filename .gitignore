@@ -10,7 +10,9 @@ __pycache__/
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfplan
 infra/build/*.zip
 !infra/build/.gitkeep
 
 resume.pdf
+Q4_EC.pdf

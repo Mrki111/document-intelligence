@@ -1,0 +1,3 @@
+{
+  "message": "documentType must be one of: general, invoice, resume."
+}

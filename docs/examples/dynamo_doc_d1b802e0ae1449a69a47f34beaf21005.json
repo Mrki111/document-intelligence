@@ -1,0 +1,237 @@
+{
+    "Item": {
+        "analysis": {
+            "M": {
+                "summary": {
+                    "S": "Amazon reported Q4 2025 revenue of $213.4 billion, up 12% year-over-year, with operating income of $25 billion. AWS accelerated growth to 24%, reaching a $142 billion annualized run rate, with custom chips (Graviton and Trainium) generating over $10 billion annually. The company is investing heavily in AI, custom silicon, low earth orbit satellites, and quick commerce. Key announcements include new partnerships with OpenAI, Visa, and others, plus launches of Nova Forge for custom model training and Bedrock AgentCore for enterprise AI deployment."
+                },
+                "risks": {
+                    "L": [
+                        {
+                            "S": "Unpredictable demand for goods and services"
+                        },
+                        {
+                            "S": "Fluctuations in foreign exchange rates and energy prices"
+                        },
+                        {
+                            "S": "Changes in global economic and geopolitical conditions"
+                        },
+                        {
+                            "S": "Tariff and trade policies affecting operations"
+                        },
+                        {
+                            "S": "Supply volatility for memory chips and components"
+                        },
+                        {
+                            "S": "Recessionary fears, inflation, and interest rate impacts"
+                        },
+                        {
+                            "S": "Regional labor market constraints"
+                        },
+                        {
+                            "S": "Competition in AI and cloud services markets"
+                        }
+                    ]
+                },
+                "title": {
+                    "S": "Amazon.com, Inc. Q4 2025 Earnings Call Transcript"
+                },
+                "actionItems": {
+                    "L": [
+                        {
+                            "S": "Continue expanding EC2 computing capacity with Graviton custom CPU silicon"
+                        },
+                        {
+                            "S": "Scale Trainium3 production with expectation of full commitment by mid-2026"
+                        },
+                        {
+                            "S": "Expand Bedrock AI service capabilities and model options"
+                        },
+                        {
+                            "S": "Develop and deploy autonomous agents across coding, DevOps, and security domains"
+                        },
+                        {
+                            "S": "Build out low earth orbit satellite capabilities"
+                        },
+                        {
+                            "S": "Expand quick commerce offerings"
+                        }
+                    ]
+                },
+                "entities": {
+                    "L": [
+                        {
+                            "S": "Amazon.com, Inc."
+                        },
+                        {
+                            "S": "AWS"
+                        },
+                        {
+                            "S": "Andrew R. Jassy"
+                        },
+                        {
+                            "S": "Brian T. Olsavsky"
+                        },
+                        {
+                            "S": "Dave Fildes"
+                        },
+                        {
+                            "S": "OpenAI"
+                        },
+                        {
+                            "S": "Visa"
+                        },
+                        {
+                            "S": "NBA"
+                        },
+                        {
+                            "S": "BlackRock"
+                        },
+                        {
+                            "S": "Perplexity"
+                        },
+                        {
+                            "S": "Lyft"
+                        },
+                        {
+                            "S": "United Airlines"
+                        },
+                        {
+                            "S": "DoorDash"
+                        },
+                        {
+                            "S": "Salesforce"
+                        },
+                        {
+                            "S": "U.S. Air Force"
+                        },
+                        {
+                            "S": "Adobe"
+                        },
+                        {
+                            "S": "Thomson Reuters"
+                        },
+                        {
+                            "S": "AT&T"
+                        },
+                        {
+                            "S": "S&P Global"
+                        },
+                        {
+                            "S": "National Bank of Canada"
+                        },
+                        {
+                            "S": "London Stock Exchange Group"
+                        },
+                        {
+                            "S": "Choice Hotels"
+                        },
+                        {
+                            "S": "Accenture"
+                        },
+                        {
+                            "S": "Indeed"
+                        },
+                        {
+                            "S": "HSBC"
+                        },
+                        {
+                            "S": "CrowdStrike"
+                        },
+                        {
+                            "S": "Anthropic"
+                        },
+                        {
+                            "S": "Mistral"
+                        },
+                        {
+                            "S": "Meta"
+                        },
+                        {
+                            "S": "TwelveLabs"
+                        }
+                    ]
+                },
+                "keyPoints": {
+                    "L": [
+                        {
+                            "S": "Revenue of $213.4 billion, up 12% year-over-year excluding FX impact"
+                        },
+                        {
+                            "S": "AWS growth accelerated to 24%, fastest in 13 quarters"
+                        },
+                        {
+                            "S": "AWS annualized run rate reached $142 billion"
+                        },
+                        {
+                            "S": "Custom chips business (Graviton and Trainium) over $10 billion annual revenue run rate with triple-digit growth"
+                        },
+                        {
+                            "S": "Bedrock multibillion-dollar annualized run rate with 60% quarter-over-quarter customer spend growth"
+                        },
+                        {
+                            "S": "Trainium2 chips landed over 1.4 million units, fastest ramping chip launch ever"
+                        },
+                        {
+                            "S": "Launched Nova Forge enabling early-stage custom model training with proprietary data"
+                        },
+                        {
+                            "S": "Launched Bedrock AgentCore for enterprise AI agent deployment"
+                        },
+                        {
+                            "S": "Kiro autonomous coding agent grew 150% quarter-over-quarter"
+                        }
+                    ]
+                }
+            }
+        },
+        "contentLength": {
+            "N": "140705"
+        },
+        "contentType": {
+            "S": "application/pdf"
+        },
+        "createdAt": {
+            "S": "2026-05-15T08:24:36Z"
+        },
+        "documentId": {
+            "S": "doc_d1b802e0ae1449a69a47f34beaf21005"
+        },
+        "documentType": {
+            "S": "general"
+        },
+        "expiresAt": {
+            "N": "1779438276"
+        },
+        "extractedTextLength": {
+            "N": "54255"
+        },
+        "extractedTextPreview": {
+            "S": "Amazon.com, Inc., Q4 2025 Earnings Call, Feb 05,\n2026\nEdited Transcript of Amazon.com, Inc. Earnings Call Thursday, February 05, 2026 at 10:00:00PM GMT\nCorporate Participants\nAndrew R. Jassy Amazon.com, Inc. - President, CEO & Director\nBrian T. Olsavsky Amazon.com, Inc. - Senior VP & CFO\nDave Fildes Amazon.com, Inc. - Vice President of Investor Relations\nConference Call Participants\nBrian Thomas Nowak Morgan Stanley, Research Division - MD & Equity Analyst\nDouglas Till Anmuth JPMorgan Chase & Co, Research Division - MD & Head of U.S. Internet Equity Research\nEric James Sheridan Goldman Sachs Group, Inc., Research Division - MD & US Internet Analyst\nMark Stephen F. Mahaney Evercore ISI Institutional Equities, Research Division - Senior MD & Head of Internet\nResearch\nMichael Paul Morton MoffettNathanson LLC - MD & Senior Research Analyst\nRoss Adam Sandler Barclays Bank PLC, Research Division - MD of Americas Equity Research & Senior Internet\nAnalyst\nPresentation\nOperator\nThank you for st"
+        },
+        "filename": {
+            "S": "Q4_EC.pdf"
+        },
+        "pageCount": {
+            "N": "15"
+        },
+        "s3ETag": {
+            "S": "fda67c9a84fe32a29d2d96b29644b2e1"
+        },
+        "s3Key": {
+            "S": "uploads/doc_d1b802e0ae1449a69a47f34beaf21005/Q4_EC.pdf"
+        },
+        "status": {
+            "S": "COMPLETED"
+        },
+        "textractJobId": {
+            "S": "e065256c6e2b9f86277fc0820d383495949f9f1ca6b8f7065848341edf9feb66"
+        },
+        "textractJobStartedAt": {
+            "S": "2026-05-15T08:24:48Z"
+        },
+        "updatedAt": {
+            "S": "2026-05-15T08:25:00Z"
+        }
+    }
+}

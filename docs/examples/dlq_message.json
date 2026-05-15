@@ -1,0 +1,32 @@
+{
+  "Messages": [
+    {
+      "MessageId": "74a816af-7da4-4b88-8cf5-b9eb83cd7dfa",
+      "ReceiptHandle": "<receipt-handle-redacted>",
+      "MD5OfBody": "3951ec408e22706ec51c41866796cb0f",
+      "Body": "{\"Records\": [{\"EventSource\": \"aws:sns\", \"EventVersion\": \"1.0\", \"EventSubscriptionArn\": \"<subscription-arn-redacted>\", \"Sns\": {\"Type\": \"Notification\", \"MessageId\": \"87c797bd-a834-5715-b501-f53d73ca72e4\", \"TopicArn\": \"<topic-arn-redacted>\", \"Message\": \"not-a-textract-notification\", \"Timestamp\": \"2026-05-15T08:30:54.258Z\", \"SignatureVersion\": \"1\", \"Signature\": \"<signature-redacted>\", \"SigningCertUrl\": \"<signing-cert-url-redacted>\", \"Subject\": null, \"UnsubscribeUrl\": \"<unsubscribe-url-redacted>\", \"MessageAttributes\": {}}}]}",
+      "Attributes": {
+        "SenderId": "<sender-id-redacted>",
+        "ApproximateFirstReceiveTimestamp": "1778834221334",
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1778834031680",
+        "AWSTraceHeader": "<trace-header-redacted>"
+      },
+      "MD5OfMessageAttributes": "ac5d91948ca6fe12a54712ee02ae01f8",
+      "MessageAttributes": {
+        "ErrorCode": {
+          "StringValue": "200",
+          "DataType": "Number"
+        },
+        "ErrorMessage": {
+          "StringValue": "Expecting value: line 1 column 1 (char 0)",
+          "DataType": "String"
+        },
+        "RequestID": {
+          "StringValue": "364223bc-7a4a-4c23-8b10-4e36abe87127",
+          "DataType": "String"
+        }
+      }
+    }
+  ]
+}

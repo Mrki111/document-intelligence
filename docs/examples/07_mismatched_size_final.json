@@ -1,0 +1,8 @@
+{
+  "documentId": "doc_c66492c6b3ad426580b9a46b8f65f585",
+  "status": "FAILED",
+  "documentType": "general",
+  "filename": "Q4_EC.pdf",
+  "failureReason": "INVALID_UPLOAD_SIZE",
+  "errorMessage": "Uploaded object size does not match the request."
+}

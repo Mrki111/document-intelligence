@@ -1,0 +1,73 @@
+# Terraform plan summary
+
+The raw binary plan was kept local and gitignored. This file captures the headline result + resource list.
+
+## Headline
+
+    Plan: 55 to add, 0 to change, 0 to destroy.
+
+## Resources (all to be created)
+
+- aws_apigatewayv2_api.http
+- aws_apigatewayv2_integration.lambda["get_document"]
+- aws_apigatewayv2_integration.lambda["health"]
+- aws_apigatewayv2_integration.lambda["upload_url"]
+- aws_apigatewayv2_route.routes["get_document"]
+- aws_apigatewayv2_route.routes["health"]
+- aws_apigatewayv2_route.routes["upload_url"]
+- aws_apigatewayv2_stage.default
+- aws_cloudwatch_log_group.lambda["complete_document_processing"]
+- aws_cloudwatch_log_group.lambda["generate_upload_url"]
+- aws_cloudwatch_log_group.lambda["get_document"]
+- aws_cloudwatch_log_group.lambda["health"]
+- aws_cloudwatch_log_group.lambda["process_document"]
+- aws_cloudwatch_metric_alarm.complete_document_processing_dlq_depth
+- aws_dynamodb_table.documents
+- aws_iam_policy.complete_document_processing
+- aws_iam_policy.generate_upload_url
+- aws_iam_policy.get_document
+- aws_iam_policy.process_document
+- aws_iam_policy.textract_publish
+- aws_iam_role.complete_document_processing
+- aws_iam_role.generate_upload_url
+- aws_iam_role.get_document
+- aws_iam_role.health
+- aws_iam_role.process_document
+- aws_iam_role.textract_publish
+- aws_iam_role_policy_attachment.complete_document_processing
+- aws_iam_role_policy_attachment.generate_upload_url
+- aws_iam_role_policy_attachment.get_document
+- aws_iam_role_policy_attachment.lambda_basic_execution["complete_document_processing"]
+- aws_iam_role_policy_attachment.lambda_basic_execution["generate_upload_url"]
+- aws_iam_role_policy_attachment.lambda_basic_execution["get_document"]
+- aws_iam_role_policy_attachment.lambda_basic_execution["health"]
+- aws_iam_role_policy_attachment.lambda_basic_execution["process_document"]
+- aws_iam_role_policy_attachment.process_document
+- aws_iam_role_policy_attachment.textract_publish
+- aws_lambda_function.functions["complete_document_processing"]
+- aws_lambda_function.functions["generate_upload_url"]
+- aws_lambda_function.functions["get_document"]
+- aws_lambda_function.functions["health"]
+- aws_lambda_function.functions["process_document"]
+- aws_lambda_permission.allow_api_gateway["get_document"]
+- aws_lambda_permission.allow_api_gateway["health"]
+- aws_lambda_permission.allow_api_gateway["upload_url"]
+- aws_lambda_permission.allow_s3_process_document
+- aws_lambda_permission.allow_sns_complete_document_processing
+- aws_s3_bucket.uploads
+- aws_s3_bucket_lifecycle_configuration.uploads
+- aws_s3_bucket_notification.uploads
+- aws_s3_bucket_public_access_block.uploads
+- aws_s3_bucket_server_side_encryption_configuration.uploads
+- aws_sns_topic.textract_completion
+- aws_sns_topic_subscription.complete_document_processing
+- aws_sqs_queue.complete_document_processing_dlq
+- aws_sqs_queue_policy.complete_document_processing_dlq
+
+## Outputs added
+
+- api_endpoint                         = (known after apply)
+- complete_document_processing_dlq_url = (known after apply)
+- document_table_name                  = "document-intelligence-dev-documents"
+- textract_completion_topic_arn        = (known after apply)
+- upload_bucket_name                   = "<bucket-name>"

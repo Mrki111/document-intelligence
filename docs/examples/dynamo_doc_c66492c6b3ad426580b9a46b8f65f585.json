@@ -1,0 +1,40 @@
+{
+    "Item": {
+        "contentLength": {
+            "N": "999999"
+        },
+        "contentType": {
+            "S": "application/pdf"
+        },
+        "createdAt": {
+            "S": "2026-05-15T08:25:15Z"
+        },
+        "documentId": {
+            "S": "doc_c66492c6b3ad426580b9a46b8f65f585"
+        },
+        "documentType": {
+            "S": "general"
+        },
+        "errorMessage": {
+            "S": "Uploaded object size does not match the request."
+        },
+        "expiresAt": {
+            "N": "1779438315"
+        },
+        "failureReason": {
+            "S": "INVALID_UPLOAD_SIZE"
+        },
+        "filename": {
+            "S": "Q4_EC.pdf"
+        },
+        "s3Key": {
+            "S": "uploads/doc_c66492c6b3ad426580b9a46b8f65f585/Q4_EC.pdf"
+        },
+        "status": {
+            "S": "FAILED"
+        },
+        "updatedAt": {
+            "S": "2026-05-15T08:25:18Z"
+        }
+    }
+}
