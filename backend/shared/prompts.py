@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 PROMPTS = {
     "resume": """Analyze this resume for a cloud engineering or AI cloud engineering role.
 

@@ -40,10 +40,12 @@ Client
 - `documentType` must be `resume`, `invoice`, or `general`.
 - Invalid or oversized uploads are rejected before URL generation and checked again after upload.
 
-## Local Tests
+## Local Development
 
 ```bash
-PYTHONPATH=backend python -m unittest discover -s tests
+python -m pip install -r requirements-dev.txt
+ruff check backend tests
+python -m unittest discover -s tests
 ```
 
 ## Deploy
