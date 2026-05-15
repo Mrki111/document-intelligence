@@ -1,0 +1,34 @@
+{
+    "MetricAlarms": [
+        {
+            "AlarmName": "document-intelligence-dev-complete-document-dlq-depth",
+            "AlarmArn": "arn:aws:cloudwatch:us-east-1:<aws-account-id>:alarm:document-intelligence-dev-complete-document-dlq-depth",
+            "AlarmDescription": "Messages in the complete_document_processing DLQ. Investigate and replay or purge.",
+            "AlarmConfigurationUpdatedTimestamp": "2026-05-15T08:22:42.023000+00:00",
+            "ActionsEnabled": true,
+            "OKActions": [],
+            "AlarmActions": [],
+            "InsufficientDataActions": [],
+            "StateValue": "ALARM",
+            "StateReason": "Threshold Crossed: 1 datapoint [1.0 (15/05/26 08:30:00)] was greater than the threshold (0.0).",
+            "StateReasonData": "{\"version\":\"1.0\",\"queryDate\":\"2026-05-15T08:36:04.738+0000\",\"startDate\":\"2026-05-15T08:30:00.000+0000\",\"statistic\":\"Maximum\",\"period\":300,\"recentDatapoints\":[1.0],\"threshold\":0.0,\"evaluatedDatapoints\":[{\"timestamp\":\"2026-05-15T08:30:00.000+0000\",\"sampleCount\":5.0,\"value\":1.0}]}",
+            "StateUpdatedTimestamp": "2026-05-15T08:36:04.740000+00:00",
+            "MetricName": "ApproximateNumberOfMessagesVisible",
+            "Namespace": "AWS/SQS",
+            "Statistic": "Maximum",
+            "Dimensions": [
+                {
+                    "Name": "QueueName",
+                    "Value": "document-intelligence-dev-complete-document-dlq"
+                }
+            ],
+            "Period": 300,
+            "EvaluationPeriods": 1,
+            "Threshold": 0.0,
+            "ComparisonOperator": "GreaterThanThreshold",
+            "TreatMissingData": "notBreaching",
+            "StateTransitionedTimestamp": "2026-05-15T08:36:04.740000+00:00"
+        }
+    ],
+    "CompositeAlarms": []
+}

@@ -124,6 +124,26 @@ Get the result:
 curl "$API_URL/documents/$DOCUMENT_ID"
 ```
 
+## Demo
+
+A captured end-to-end run with evidence files is in [`docs/examples/`](docs/examples/), walked through in [`docs/journey.md`](docs/journey.md).
+
+To reproduce, after `terraform apply`, supply a PDF and run the script. The script defaults to `./Q4_EC.pdf` (gitignored — bring your own) and `documentType=general`; override either via env vars:
+
+```bash
+PDF=/path/to/your.pdf ./scripts/demo.sh
+# or
+PDF=Q4_EC.pdf DOCUMENT_TYPE=resume ./scripts/demo.sh
+```
+
+Any PDF up to `max_content_length` (10 MB default) and within `max_textract_pages` (25 default) works. The captured `docs/examples/` run was generated from an Amazon Q4 2025 earnings-call transcript (15 pages), but the pipeline is content-agnostic.
+
+The script:
+
+1. Requests a presigned URL, uploads the PDF, polls until `COMPLETED`, and saves the final document record (with `extractedTextPreview`, `pageCount`, and `analysis` if Bedrock is enabled).
+2. Sends an invalid `documentType` to show the pre-signature validation gate (HTTP 400).
+3. Lies about `contentLength` in the upload request to trigger the post-upload S3 `HeadObject` revalidation, ending in `FAILED` with `INVALID_UPLOAD_SIZE`.
+
 ## Security Design
 
 - Pre-signed PUT URLs replace any public-write surface on the S3 bucket.
@@ -164,5 +184,5 @@ Cost controls already in the stack:
 - Step Functions to orchestrate extraction → analysis → indexing
 - Cognito-backed authentication and per-user document history
 - Pre-signed POST policies with `content-length-range` for server-side size enforcement
-- CI/CD via GitHub Actions, including Terraform plan checks
+- Deployment automation and Terraform plan comments on pull requests
 - Frontend UI and an OpenAPI spec for the HTTP API

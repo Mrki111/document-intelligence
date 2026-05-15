@@ -1,0 +1,62 @@
+2026-05-15T08:24:59.126000+00:00 2026/05/15/[$LATEST]9145be4d78274b8fbcce5bb9f577a666 INIT_START Runtime Version: python:3.12.mainlinev2.v7	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244
+2026-05-15T08:24:59.248000+00:00 2026/05/15/[$LATEST]9145be4d78274b8fbcce5bb9f577a666 START RequestId: 1e1a5e56-110e-4323-b3dd-95ab30cf8f1b Version: $LATEST
+2026-05-15T08:25:11.130000+00:00 2026/05/15/[$LATEST]9145be4d78274b8fbcce5bb9f577a666 END RequestId: 1e1a5e56-110e-4323-b3dd-95ab30cf8f1b
+2026-05-15T08:25:11.130000+00:00 2026/05/15/[$LATEST]9145be4d78274b8fbcce5bb9f577a666 REPORT RequestId: 1e1a5e56-110e-4323-b3dd-95ab30cf8f1b	Duration: 11880.84 ms	Billed Duration: 11999 ms	Memory Size: 512 MB	Max Memory Used: 116 MB	Init Duration: 117.60 ms
+2026-05-15T08:30:54.607000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 INIT_START Runtime Version: python:3.12.mainlinev2.v7	Runtime Version ARN: arn:aws:lambda:us-east-1::runtime:e4ab553846c4e081013ff7d1d608a5358d5b956bb5b81c83c66d2a31da8f6244
+2026-05-15T08:30:54.731000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 START RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127 Version: $LATEST
+2026-05-15T08:30:56.081000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 [ERROR] JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "/var/task/lambdas/complete_document_processing/app.py", line 28, in lambda_handler
+    return handle_sns_event(event, config=config)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 51, in handle_sns_event
+    result = process_sns_record(
+  File "/var/task/lambdas/complete_document_processing/app.py", line 72, in process_sns_record
+    message = _sns_message(record)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 160, in _sns_message
+    parsed = json.loads(raw_message)
+  File "/var/lang/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/var/lang/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/var/lang/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+2026-05-15T08:30:56.097000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 END RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127
+2026-05-15T08:30:56.097000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 REPORT RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127	Duration: 1365.17 ms	Billed Duration: 1486 ms	Memory Size: 512 MB	Max Memory Used: 89 MB	Init Duration: 120.64 ms
+2026-05-15T08:31:50.234000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 START RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127 Version: $LATEST
+2026-05-15T08:31:50.259000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 [ERROR] JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "/var/task/lambdas/complete_document_processing/app.py", line 28, in lambda_handler
+    return handle_sns_event(event, config=config)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 51, in handle_sns_event
+    result = process_sns_record(
+  File "/var/task/lambdas/complete_document_processing/app.py", line 72, in process_sns_record
+    message = _sns_message(record)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 160, in _sns_message
+    parsed = json.loads(raw_message)
+  File "/var/lang/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/var/lang/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/var/lang/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+2026-05-15T08:31:50.277000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 END RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127
+2026-05-15T08:31:50.277000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 REPORT RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127	Duration: 42.82 ms	Billed Duration: 43 ms	Memory Size: 512 MB	Max Memory Used: 90 MB
+2026-05-15T08:33:51.443000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 START RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127 Version: $LATEST
+2026-05-15T08:33:51.478000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 [ERROR] JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+Traceback (most recent call last):
+  File "/var/task/lambdas/complete_document_processing/app.py", line 28, in lambda_handler
+    return handle_sns_event(event, config=config)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 51, in handle_sns_event
+    result = process_sns_record(
+  File "/var/task/lambdas/complete_document_processing/app.py", line 72, in process_sns_record
+    message = _sns_message(record)
+  File "/var/task/lambdas/complete_document_processing/app.py", line 160, in _sns_message
+    parsed = json.loads(raw_message)
+  File "/var/lang/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/var/lang/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/var/lang/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+2026-05-15T08:33:51.496000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 END RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127
+2026-05-15T08:33:51.497000+00:00 2026/05/15/[$LATEST]20c25ca661e1423cbdaaad1df8bbe5c7 REPORT RequestId: 364223bc-7a4a-4c23-8b10-4e36abe87127	Duration: 52.65 ms	Billed Duration: 53 ms	Memory Size: 512 MB	Max Memory Used: 91 MB
