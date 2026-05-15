@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import unittest
 import json
+import unittest
 from datetime import UTC, datetime
 from io import BytesIO
 
